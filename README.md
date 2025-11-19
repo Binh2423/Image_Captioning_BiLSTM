@@ -80,6 +80,56 @@ cd src/inference
 python inference.py [-h] [--dataset {flickr30k}] [--model {transformer}] --checkpoint CHECKPOINT [--source SOURCE] --destination DESTINATION
 ```
 
+## MSG_C Caption Generator (NEW)
+
+We've added a new autoregressive caption generation script with MSG_C (Multi-Scale Semantic Guidance) integration:
+
+### Quick Start
+
+**Smoke test (no dataset required):**
+```sh
+python scripts/caption_ar.py --pretrained --vocab-path vocab.pkl --batch-size 4 --tgt-seq-len 12 --epochs 1 --compute-metrics
+```
+
+**Pre-extract features:**
+```sh
+python scripts/caption_ar.py --preextract-features ./features_dir --vocab-path vocab.pkl --batch-size 8 --pretrained
+```
+
+**Train with pre-extracted features:**
+```sh
+python scripts/caption_ar.py --use-preextracted ./features_dir --vocab-path vocab.pkl --batch-size 8 --epochs 10 --compute-metrics
+```
+
+**Inference demo:**
+```sh
+python scripts/caption_ar.py --pretrained --vocab-path vocab.pkl --inference --batch-size 4
+```
+
+For detailed documentation in Vietnamese, see [scripts/README.md](scripts/README.md).
+
+### Features
+
+- **DeiT** feature extraction with pretrained weights
+- **MSG_C** module with multi-scale pooling (scales: 1, 2, 4)
+- **Gated fusion** of MSG_C into autoregressive LSTM decoder
+- **Flexible encoder**: BiLSTM, Transformer, or None
+- **Attention mechanism** over encoder outputs
+- **Teacher forcing** training with configurable ratio
+- **Metrics**: BLEU and METEOR (when NLTK available)
+- **Pre-extraction support** for faster training
+- **Robust vocab loader** (handles vocab.pkl from Tokenizer)
+
+### Architecture
+
+```
+Image → DeiT → Projection → Encoder (BiLSTM/Transformer) → MSG_C
+                                                               ↓
+                                            Decoder (LSTM + Attention + Gated Fusion)
+                                                               ↓
+                                                            Logits
+```
+
 ## Run the associated app
 
 To run the app associated with the project : 
