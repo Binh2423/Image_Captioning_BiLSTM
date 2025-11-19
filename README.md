@@ -80,6 +80,101 @@ cd src/inference
 python inference.py [-h] [--dataset {flickr30k}] [--model {transformer}] --checkpoint CHECKPOINT [--source SOURCE] --destination DESTINATION
 ```
 
+## Autoregressive Image Captioning (New)
+
+A new standalone script `scripts/caption_ar.py` provides an autoregressive decoder with attention and advanced features:
+
+### Features
+
+- **DeiT Feature Extractor**: Uses Data-efficient Image Transformer (DeiT) via timm with PyTorch weights
+- **Linear Projection**: Projects DeiT features before the decoder to reduce parameters
+- **Autoregressive Decoder**: Uni-directional decoder with attention mechanism for proper sequential generation
+- **Weight Tying**: Shares weights between decoder embedding and output projection
+- **Feature Pre-extraction**: Save DeiT features to disk for faster language model training
+- **Configurable Architecture**: Adjustable dropout, number of layers, attention heads
+- **Freezeable Backbone**: Option to freeze DeiT parameters to focus on caption generation
+
+### Usage
+
+#### Pre-extract Features (Optional, for faster training)
+
+```sh
+python scripts/caption_ar.py --mode preextract \
+  --data-dir data/flickr30k \
+  --train-captions data/flickr30k/train_captions.csv \
+  --features-dir data/features \
+  --pretrained
+```
+
+#### Training
+
+With on-the-fly feature extraction:
+```sh
+python scripts/caption_ar.py --mode train \
+  --data-dir data/flickr30k \
+  --train-captions data/flickr30k/train_captions.csv \
+  --output-dir output \
+  --pretrained \
+  --freeze-deit \
+  --projection-dim 512 \
+  --num-layers 6 \
+  --num-heads 8 \
+  --dropout 0.1 \
+  --batch-size 32 \
+  --epochs 10
+```
+
+With pre-extracted features (faster):
+```sh
+python scripts/caption_ar.py --mode train \
+  --use-preextracted \
+  --features-dir data/features \
+  --train-captions data/flickr30k/train_captions.csv \
+  --output-dir output \
+  --projection-dim 512 \
+  --num-layers 6 \
+  --num-heads 8 \
+  --dropout 0.1 \
+  --batch-size 32 \
+  --epochs 10
+```
+
+#### Inference
+
+Single image:
+```sh
+python scripts/caption_ar.py --mode inference \
+  --checkpoint output/final_model.pt \
+  --image-path test_images/sample.jpg \
+  --output-dir output \
+  --projection-dim 512 \
+  --num-layers 6 \
+  --num-heads 8
+```
+
+Batch inference:
+```sh
+python scripts/caption_ar.py --mode inference \
+  --checkpoint output/final_model.pt \
+  --images-dir test_images/ \
+  --output-dir output \
+  --projection-dim 512 \
+  --num-layers 6 \
+  --num-heads 8
+```
+
+### Key Arguments
+
+- `--mode {train,inference,preextract}`: Operating mode
+- `--pretrained`: Use pretrained DeiT weights (PyTorch only)
+- `--freeze-deit`: Freeze DeiT backbone parameters
+- `--projection-dim`: Dimension of linear projection layer (default: 512)
+- `--num-layers`: Number of decoder layers (default: 6)
+- `--num-heads`: Number of attention heads (default: 8)
+- `--dropout`: Dropout rate (default: 0.1)
+- `--use-preextracted`: Use pre-extracted features for training
+- `--features-dir`: Directory for pre-extracted features
+
 ## Run the associated app
 
 To run the app associated with the project : 
