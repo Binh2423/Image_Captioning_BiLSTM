@@ -744,8 +744,11 @@ def main():
     # Model architecture
     parser.add_argument('--model-name', type=str, default='deit_base_patch16_224',
                        help='DeiT model name from timm')
-    parser.add_argument('--pretrained', action='store_true', default=True,
+    parser.add_argument('--pretrained', action='store_true',
                        help='Use pretrained DeiT weights (PyTorch only)')
+    parser.add_argument('--no-pretrained', dest='pretrained', action='store_false',
+                       help='Do not use pretrained weights')
+    parser.set_defaults(pretrained=False)
     parser.add_argument('--freeze-deit', action='store_true',
                        help='Freeze DeiT backbone parameters')
     parser.add_argument('--projection-dim', type=int, default=512,
